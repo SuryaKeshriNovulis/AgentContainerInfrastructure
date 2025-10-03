@@ -1,0 +1,8 @@
+.azure
+
+.venv
+
+bin
+obj
+appsettings.json
+
