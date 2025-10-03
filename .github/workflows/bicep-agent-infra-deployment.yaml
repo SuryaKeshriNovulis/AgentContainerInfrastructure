@@ -1,0 +1,50 @@
+name: Agent Infra Deployment
+on:
+    workflow_dispatch:
+        inputs:
+            AZURE_CLIENT_ID:
+                description: 'Azure Client ID'
+                required: true
+            AZURE_TENANT_ID:
+                description: 'Azure Tenant ID'
+                required: true
+            AZURE_SUBSCRIPTION_ID:
+                description: 'Azure Subscription ID'
+                required: true
+            AZURE_SUBSCRIPTION:
+                description: 'Azure Subscription'
+                required: true
+            AZURE_RG:
+                description: 'Azure Resource Group'
+                required: true
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+                    # Log into Azure
+            - uses: azure/login@v2
+              with:
+                client-id: ${{ inputs.AZURE_CLIENT_ID }}
+                tenant-id: ${{ inputs.AZURE_TENANT_ID }}
+                subscription-id: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
+
+            - name: Infrastructure Deployment
+              run: |
+                echo "Deploying infrastructure..."
+            # Deploy Bicep file
+            - name: deploy
+              uses: azure/arm-deploy@v1
+              with:
+                subscriptionId: ${{ inputs.AZURE_SUBSCRIPTION }}
+                resourceGroupName: ${{ inputs.AZURE_RG }}
+                template: ./infra/main.bicep
+                parameters: ./infra/parameters.json
+                failOnStdErr: false
+                scope: resourceGroup
+
+            - name: Infrastructure Deployment
+              run: |
+                echo "Finished deploying infrastructure..."
