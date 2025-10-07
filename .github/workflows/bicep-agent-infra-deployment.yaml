@@ -1,4 +1,5 @@
 name: Agent Infra Deployment
+
 on:
   workflow_dispatch:
     inputs:
@@ -10,36 +11,28 @@ permissions:
   id-token: write
   contents: read
 
-
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v3
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-                    # Log into Azure
-            - uses: azure/login@v2
-              with:
-                client-id: ${{ secrets.AZURE_CLIENT_ID }}
-                tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-                subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-                auth-type: 'OIDC'
+      # Azure OIDC login — do NOT set auth-type
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-            - name: Infrastructure Deployment
-              run: |
-                echo "Deploying infrastructure..."
-            # Deploy Bicep file
-            - name: deploy
-              uses: azure/arm-deploy@v1
-              with:
-                subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-                resourceGroupName: ${{ github.event.inputs.AZURE_RG }}
-                template: ./infra/main.bicep
-                parameters: ./infra/main.parameters.json
-                failOnStdErr: false
-                scope: resourceGroup
+      - name: Start
+        run: echo "Deploying infrastructure..."
 
-            - name: Infrastructure Deployment
-              run: |
-                echo "Finished deploying infrastructure..."
+      # Deploy Bicep to a resource group
+      - name: Deploy Bicep
+        uses: azure/arm-deploy@v1
+        with:
+          scope: resourceGroup
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resource
