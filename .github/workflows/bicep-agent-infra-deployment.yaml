@@ -3,9 +3,26 @@ name: Agent Infra Deployment
 on:
   workflow_dispatch:
     inputs:
+      AZURE_CLIENT_ID:
+        description: 'Azure Client ID'
+        required: true
+        type: string
+      AZURE_TENANT_ID:
+        description: 'Azure Tenant ID'
+        required: true
+        type: string
+      AZURE_SUBSCRIPTION_ID:
+        description: 'Azure Subscription ID'
+        required: true
+        type: string
+      AZURE_SUBSCRIPTION:
+        description: 'Azure Subscription (same as ID, optional duplication)'
+        required: true
+        type: string
       AZURE_RG:
         description: 'Azure Resource Group'
         required: true
+        type: string
 
 permissions:
   id-token: write
@@ -18,13 +35,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Azure OIDC login — do NOT set auth-type
+      # OIDC login: do NOT set auth-type
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ inputs.AZURE_CLIENT_ID }}
+          tenant-id: ${{ inputs.AZURE_TENANT_ID }}
+          subscription-id: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
 
       - name: Start
         run: echo "Deploying infrastructure..."
@@ -34,5 +51,11 @@ jobs:
         uses: azure/arm-deploy@v1
         with:
           scope: resourceGroup
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          resource
+          subscriptionId: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ inputs.AZURE_RG }}
+          template: ./infra/main.bicep
+          parameters: ./infra/parameters.json
+          failOnStdErr: false
+
+      - name: Finish
+        run: echo "Finished deploying infrastructure..."
