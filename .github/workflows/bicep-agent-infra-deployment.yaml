@@ -1,26 +1,10 @@
 name: Agent Infra Deployment
 on:
-    workflow_dispatch:
-        inputs:
-            AZURE_CLIENT_ID:
-                description: 'Azure Client ID'
-                required: true
-            AZURE_TENANT_ID:
-                description: 'Azure Tenant ID'
-                required: true
-            AZURE_SUBSCRIPTION_ID:
-                description: 'Azure Subscription ID'
-                required: true
-            AZURE_SUBSCRIPTION:
-                description: 'Azure Subscription'
-                required: true
-            AZURE_RG:
-                description: 'Azure Resource Group'
-                required: true
-
-permissions:
-  id-token: write   # Required for OIDC authentication
-  contents: read    # Required for actions/checkout
+  workflow_dispatch:
+    inputs:
+      AZURE_RG:
+        description: 'Azure Resource Group'
+        required: true
 
 jobs:
     deploy:
@@ -32,9 +16,10 @@ jobs:
                     # Log into Azure
             - uses: azure/login@v2
               with:
-                client-id: ${{ inputs.AZURE_CLIENT_ID }}
-                tenant-id: ${{ inputs.AZURE_TENANT_ID }}
-                subscription-id: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
+                client-id: ${{ secrets.AZURE_CLIENT_ID }}
+                tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+                subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+                client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
 
             - name: Infrastructure Deployment
               run: |
@@ -43,10 +28,10 @@ jobs:
             - name: deploy
               uses: azure/arm-deploy@v1
               with:
-                subscriptionId: ${{ inputs.AZURE_SUBSCRIPTION }}
-                resourceGroupName: ${{ inputs.AZURE_RG }}
+                subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+                resourceGroupName: ${{ github.event.inputs.AZURE_RG }}
                 template: ./infra/main.bicep
-                parameters: ./infra/parameters.json
+                parameters: ./infra/main.parameters.json
                 failOnStdErr: false
                 scope: resourceGroup
 
