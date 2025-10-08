@@ -54,7 +54,7 @@ jobs:
           subscriptionId: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
           region: eastus2 
           template: ./infra/main.bicep
-          parameters: ./infra/parameters.json
+          parameters: ./infra/main.parameters.json
           failOnStdErr: false
 
       - name: Finish
